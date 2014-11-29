@@ -1,7 +1,7 @@
-import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,14 +17,13 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 
-
 public class Game extends JFrame{
 	
 	String username = "elif", level = "diamond";
-	JPanel main, play, setting, startPanel, window;
+	JPanel main, play, setting, startPanel, window, gamePanel;
 	CardLayout cl;
 	int count = 30, points = 0, numPlayers;
-	Timer t;
+	Timer t, tim2, time3;
 	int roundCount = 1;
 	
 	public Game(){
@@ -151,13 +150,23 @@ public class Game extends JFrame{
 		play.setBackground(Color.WHITE);
 		play.setLayout(new BoxLayout(play, BoxLayout.Y_AXIS));
 		
+		gamePanel = new JPanel();		
 		JLabel smallLogo = new JLabel(new ImageIcon("./small.jpg"));
 		JLabel round = new JLabel("ROUND " + roundCount);
 		round.setFont(new Font(nameLabel.getFont().getName(), Font.BOLD, 36));
 		JLabel word = new JLabel("Your word:");
 		JTextField input = new JTextField(50);
+		input.setMaximumSize( new Dimension(350, 250));
 		
-		
+		JLabel bank = new JLabel("Your bank:");
+		JPanel bankP = new JPanel();
+		gamePanel.setLayout(null);
+
+		bankP.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+		bankP.setBackground(Color.WHITE);
+		bankP.setMaximumSize(new Dimension(400, 100));
+		bankP.setPreferredSize(new Dimension(400, 100));
+
 		JLabel time = new JLabel("Timer: 30");
 		t = new Timer(1000, new ActionListener(){
 
@@ -175,17 +184,27 @@ public class Game extends JFrame{
 		});
 		time.setFont(new Font(nameLabel.getFont().getName(), Font.PLAIN, 20));
 
-		JPanel top = new JPanel();
-		top.setLayout(null);
-		top.add(smallLogo);
-		top.add(time);
-		smallLogo.setBounds(2, 5, 250, 100);
-		time.setBounds(470, 5, 100, 100);
+		gamePanel.add(smallLogo);
+		gamePanel.add(time);
+		smallLogo.setBounds(2, 5, 250, 70);
+		time.setBounds(470, 5, 100, 70);
+		gamePanel.setBackground(Color.WHITE);
+		
+	
+		gamePanel.add(round);
+		gamePanel.add(word);
+		gamePanel.add(input);
+		gamePanel.add(bank);
+		gamePanel.add(bankP);
+		
+		round.setBounds(220, 230, 200, 50);
+		word.setBounds(100, 415, 200, 50);
+		input.setBounds(100, 465, 400, 25);
+		bank.setBounds(100, 490, 400, 50);
+		bankP.setBounds(100, 540, 400, 100);
 
 
-		play.add(top);
-		
-		
+		play.add(gamePanel);
 		
 		// *** SETTINGS ***
 		
@@ -205,17 +224,37 @@ public class Game extends JFrame{
 		setting.add(name);
 		setting.add(Box.createGlue());
 		setting.add(nameInput);
-		setting.add(Box.createGlue());
-		setting.add(Box.createGlue());
 		nameInput.setMaximumSize( nameInput.getPreferredSize() );
+	
+		
+		JButton save = new JButton("Save");
+		setting.add(Box.createGlue());
+		
+		setting.add(save);
+		setting.add(Box.createGlue());
+		setting.add(Box.createGlue());
 
 		settingsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		icons.setAlignmentX(Component.CENTER_ALIGNMENT);
 		name.setAlignmentX(Component.CENTER_ALIGNMENT);
 		nameInput.setAlignmentX(Component.CENTER_ALIGNMENT);
+		save.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+		save.addActionListener(new ActionListener(){
 
-		
+			public void actionPerformed(ActionEvent arg0) {
+				if(!nameInput.getText().isEmpty()){
+					username = nameInput.getText();
+					// update username in database too
+					
+					nameLabel.setText(username);
+					cl.show(window, "Main");
+				}
+			}
+			
+			
+			
+		});
 		
 		
 		main.setBackground(Color.WHITE);
@@ -237,19 +276,81 @@ public class Game extends JFrame{
 	
 	public void play(){
 		
+		setSize(600, 700);
+		JLabel t2 = new JLabel("30");
+		t2.setFont(new Font(t2.getFont().getName(), Font.PLAIN, 20));
+
+		tim2 = new Timer(1000, new ActionListener(){
+			int count2 = 30;
+
+			public void actionPerformed(ActionEvent arg0) {
+			
+				count2--;
+				if(count2 > -1)
+					t2.setText(Integer.toString(count2));
+				else{
+					
+					tim2.stop();
+				}
+				
+			}
+		});
+		
+		JLabel user1 = new JLabel("username");
+		JLabel level1 = new JLabel("level");
+		gamePanel.add(user1);
+		gamePanel.add(level1);
+		gamePanel.add(t2);
+
 		
 		if(numPlayers == 2){
 			
-			
+			user1.setBounds(100, 80, 100, 50);
+			level1.setBounds(100, 180, 100, 50);
+			t2.setBounds(200, 80, 50, 50);
+			tim2.start();
+
 		}
 		
 		else{
+			JLabel t3 = new JLabel("30");
+			t3.setFont(new Font(t2.getFont().getName(), Font.PLAIN, 20));
+
+			time3 = new Timer(1000, new ActionListener(){
+				int count3 = 30;
+
+				public void actionPerformed(ActionEvent arg0) {
+				
+					count3--;
+					if(count3 > -1)
+						t3.setText(Integer.toString(count3));
+					else{
+						
+						time3.stop();
+					}
+					
+				}
+			});
 			
+			JLabel user2 = new JLabel("username");
+			JLabel level2 = new JLabel("level");
+			gamePanel.add(user2);
+			gamePanel.add(level2);
+			gamePanel.add(t3);
+			
+			user1.setBounds(100, 80, 100, 50);
+			level1.setBounds(100, 180, 100, 50);
+			user2.setBounds(300, 80, 100, 50);
+			level2.setBounds(300, 180, 100, 50);
+			t2.setBounds(200, 80, 50, 50);
+			t3.setBounds(400, 80, 50, 50);
+			tim2.start();
+			time3.start();
+
 			
 		}
 		
 		
-			
 		cl.show(window, "Play");
 		t.start();
 
