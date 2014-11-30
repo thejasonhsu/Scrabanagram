@@ -23,7 +23,16 @@ Preset/Customized wordlist:
     Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/" + DATABASE_NAME, "username", "password");
     ```
     + Run DictionaryMain.java to fill db up with words and valid solutions.
+    
+  + Create database named 'scrabanagram'
+  + Replace username and password with your own in ServerInfo.java:
+  ```bash
+  public static final String USER = "username";
+	public static final String PASSWORD = "password";
+  ```
 
-Proceed to run the main program.
+Run GameServer.java.
+
+Run Login.java.
 
 Launch as many times as the number of players needed. 
