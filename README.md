@@ -8,8 +8,7 @@ mySQL:
   + Create table named 'dictionary' under the db
   + word VARCHAR(40), count INTEGER
 
-    + Preset/Customized wordlist:
-      + To use preset wordlist:
+    + To use preset wordlist:
       + Replace username and password with your own in TransferMain.java:
       ```bash
       Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/" + DATABASE_NAME, "username", "password");
