@@ -16,13 +16,13 @@ mySQL:
       ```
       + Run TransferMain.java to fill db up with words and valid solutions.
 
-      + To use customized wordlist:
-      + Replace words.txt with your own.
-      + Replace username and password with your own in DictionaryMain.java:
+    + To use customized wordlist:
+    + Replace words.txt with your own.
+    + Replace username and password with your own in DictionaryMain.java:
       ```bash
       Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/" + DATABASE_NAME, "username", "password");
       ```
-      + Run DictionaryMain.java to fill db up with words and valid solutions.
+    + Run DictionaryMain.java to fill db up with words and valid solutions.
     
   + Create database named 'scrabanagram'
   + Replace username and password with your own in ServerInfo.java:
