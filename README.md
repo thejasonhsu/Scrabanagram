@@ -33,6 +33,6 @@ mySQL:
 
 Run GameServer.java.
 
-Run Login.java.
+Run GameClient.java.
 
 Launch as many times as the number of players needed. 
