@@ -10,11 +10,13 @@ public class Login extends JFrame implements ActionListener
 	private JPanel mainPanel, userPanel, passPanel, buttonPanel;
 	private JTextField usernameBox, passwordBox;
 	private JLabel loginLabel, usernameLabel, passwordLabel, outputLabel;
-	private JButton loginButton, newUserButton, closeButton;
+	private JButton loginButton, newUserButton;
+	public JButton closeButton;
 	
 	private Socket clientSocket = null;
 	private PrintStream output = null;
 	private BufferedReader inputLine = null;
+	private String user = ""; 
 	
 	public Login()
 	{
@@ -46,7 +48,7 @@ public class Login extends JFrame implements ActionListener
 		newUserButton = new JButton("Create User");
 		newUserButton.addActionListener(this);
 		buttonPanel.add(newUserButton);
-		closeButton = new JButton("Cancel");
+		closeButton = new JButton("Close");
 		closeButton.addActionListener(this);
 		buttonPanel.add(closeButton);
 
@@ -87,6 +89,8 @@ public class Login extends JFrame implements ActionListener
 			        output.println("LOGIN CURRENT " + usernameBox.getText() + " " + passwordBox.getText());
 			        outputLabel.setForeground((inputLine.readLine().equals("GREEN")) ? new Color(3, 94, 0) : Color.RED);
 			        outputLabel.setText(inputLine.readLine());
+			        if(outputLabel.getForeground() != Color.RED)
+			        	user = usernameBox.getText();
 			    } 
 			    catch (UnknownHostException u) 
 			    {
@@ -116,6 +120,8 @@ public class Login extends JFrame implements ActionListener
 			        output.println("LOGIN NEW " + usernameBox.getText() + " " + passwordBox.getText());
 			        outputLabel.setForeground((inputLine.readLine().equals("GREEN")) ? new Color(3, 94, 0) : Color.RED);
 			        outputLabel.setText(inputLine.readLine());
+			        if(outputLabel.getForeground() != Color.RED)
+			        	user = usernameBox.getText();
 			    } 
 			    catch (UnknownHostException u) 
 			    {
@@ -127,12 +133,10 @@ public class Login extends JFrame implements ActionListener
 			    }
 			}	
 		}
-		else if(e.getSource() == closeButton)
-			dispose();
 	}
 	
-	public static void main(String args[])
+	public String getUserName()
 	{
-		new Login();
+		return user;
 	}
 }

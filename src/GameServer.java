@@ -44,10 +44,7 @@ public class GameServer
 			PreparedStatement createUserTable = ServerInfo.conn.prepareStatement("CREATE TABLE USER(username VARCHAR(50) NOT NULL, password VARCHAR(50) NOT NULL, PRIMARY KEY(username));");
 			createUserTable.executeUpdate();
 	    }
-	    catch (SQLException e)
-	    {
-	    	System.out.println("ALREADY CREATED!");
-	    }
+	    catch (SQLException e) { } // Already Created!
 	    
 	    while (true) 
 	    {
