@@ -1,28 +1,53 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
 
 import javax.swing.*;
-import javax.swing.Timer;
 
 public class GameClient extends JFrame implements ActionListener
 {
-	private enum STATE {INITIAL, MAIN, GAME, INSTRUCTIONS, STATUS, FINAL};
+	private enum STATE {INITIAL, MAIN, GAME, STATUS, FINAL};
 
 	private JPanel mainPanel = new JPanel();
 	private Timer timer;
-	private STATE currState = STATE.INITIAL;
+	private STATE currState = STATE.MAIN;
 	private JProgressBar progressBar = new JProgressBar();
 	private Animation motion;
 	private JButton gameStartButton, instructionsButton, userLoginButton, backButton;
 	private Login login = null; 
 	private String username = "";
 	private Label userLabel; 
-	
+	private ChatBox chat = null;
+	private GameBox game = null;
+	private boolean hasStarted = false;
+
+	private Socket clientSocket = null;
+	private ClientHandler client;
+
 	public GameClient()
 	{
 		super("Scrabanagram!");
 		add(setupTitleScreen());
-		
+
+	    try 
+	    {
+	        clientSocket = new Socket(ServerInfo.host, ServerInfo.portNumber);
+	    } 
+	    catch (UnknownHostException u) 
+	    {
+	        System.out.println("ERROR: Unknown Host!");
+	    } 
+	    catch (IOException u) 
+	    {
+	        System.out.println("ERROR: Problem Reading Host!");
+	    }
+	    
 		setSize(800, 600);
 		setVisible(true);
 		setResizable(false);
@@ -108,9 +133,16 @@ public class GameClient extends JFrame implements ActionListener
 		mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 	}
 
-	public JPanel setupGamePanel()
+	public void setupGamePanel()
 	{
-		return null;
+		chat = new ChatBox(username, null);
+		chat.setPreferredSize(new Dimension(200, 600));
+		chat.setBackground(Color.LIGHT_GRAY);
+		add(chat, BorderLayout.EAST);
+
+		game = new GameBox(username, null);
+		game.setPreferredSize(new Dimension(600, 600));
+		add(chat, BorderLayout.CENTER);
 	}
 	
 	public JPanel setupStatusPanel()
@@ -174,6 +206,77 @@ public class GameClient extends JFrame implements ActionListener
 			gameStartButton.setEnabled(true);
 			instructionsButton.setEnabled(true);
 			userLoginButton.setEnabled(true);
+		}
+		else if(e.getSource() == gameStartButton)
+		{
+			Object options[] = {"1 Player", "2 Players", "3 Players"};
+			int choice = JOptionPane.showOptionDialog(null, "How many players do you want to play with?", "Question", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
+			
+			mainPanel.removeAll();
+			setupGamePanel();
+			mainPanel.repaint();
+			mainPanel.revalidate();
+
+			System.out.println("CHOICE: " + choice);
+			//output.println("QUEUE " + (choice + 1));
+
+			while(!hasStarted);
+		}
+	}
+
+	public class ClientHandler extends Thread
+	{
+		private Socket client = null;
+		public PrintStream output = null;
+		public BufferedReader inputLine = null;
+		public String userName;
+		
+		public ClientHandler(Socket s, String name)
+		{
+			client = s;
+			userName = name;
+		}
+		
+		public void run()
+		{
+	    	try 
+	    	{
+    			inputLine = new BufferedReader(new InputStreamReader(client.getInputStream()));
+	    		output = new PrintStream(client.getOutputStream());
+	    		
+	    		while (true) 
+	    		{
+	    			String line = inputLine.readLine();
+	    			System.out.println("Line: " + line);
+		    		Scanner inputStream = new Scanner(line);
+		    		String command = inputStream.next();
+		    		
+		    		if(command.equals("MESSAGE"))
+		    		{
+	    				String username = inputStream.next();
+	    				Color color = chat.convertColorString(inputStream.next());
+	    				String message = inputStream.next() + "\n";
+	    				chat.setText(username, color, message);
+		    		}
+		    		else if(command.equals("START"))
+		    		{
+		    			hasStarted = true;
+		    		}
+		    		else if(command.equals("UPDATE"))
+		    		{
+		    			game.update(inputStream.next());
+		    		}
+		    		else if(command.equals("DONE"))
+		    		{
+		    			game.complete();
+		    		}
+		    		inputStream.close();
+	    		}
+	    	}
+	    	catch (IOException e)
+	    	{
+	    		
+	    	}
 		}
 	}
 	
