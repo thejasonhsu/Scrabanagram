@@ -43,7 +43,10 @@ public class ChatBox extends JPanel implements ActionListener
 		{
 			String mess = message.getText();
 			message.setText("");
-			output.println("MESSAGE " + username + " " + mess);
+			if(username.equals(""))
+				output.println("MESSAGE " + "ANONYMOUS" + " " + mess);
+			else
+				output.println("MESSAGE " + username + " " + mess);
 		}
 	}
 	
@@ -61,6 +64,8 @@ public class ChatBox extends JPanel implements ActionListener
 		{
 		        	
 		}
+		repaint();
+		revalidate();
 	}
 	
 	public Color convertColorString(String col)

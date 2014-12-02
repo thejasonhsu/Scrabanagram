@@ -20,7 +20,7 @@ public class TransferMain
 		}
 	}
 
-	private static final String DATABASE_NAME = "DICTIONARY";
+	private static final String DATABASE_NAME = "Scrabanagram";
 	private static ArrayList<AnagramWord> wordList = new ArrayList<AnagramWord>();
 	
 	public static void main(String[] args) throws FileNotFoundException
@@ -36,15 +36,14 @@ public class TransferMain
 			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/" + DATABASE_NAME, "root", "Heaty6969");
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("DROP TABLE DICTIONARY;");
-			stmt.executeUpdate("CREATE TABLE DICTIONARY(word VARCHAR(40), count INTEGER, PRIMARY KEY(word));");
+			stmt.executeUpdate("CREATE TABLE DICTIONARY(word VARCHAR(40), PRIMARY KEY(word));");
 			
 			for(int i = 0; i < wordList.size(); i++)
 			{
 				if(i % 1000 == 0)
 					System.out.println(i);
-				PreparedStatement insertState = conn.prepareStatement("INSERT INTO DICTIONARY (word, count) VALUES (?, ?);");
+				PreparedStatement insertState = conn.prepareStatement("INSERT INTO DICTIONARY (word) VALUES (?);");
 				insertState.setString(1, wordList.get(i).word);
-				insertState.setInt(2, wordList.get(i).count);
 				insertState.execute();
 			}
 		}

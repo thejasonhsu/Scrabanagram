@@ -8,43 +8,36 @@ import javax.swing.*;
 
 public class GameBox extends JPanel implements KeyListener
 {
-	private final int LETTER_VALUES[] = {1, 3, 3, 2, 1,
-										 4, 2, 4, 1, 8,
-										 5, 1, 3, 1, 1,
-										 3, 10, 1, 1, 1,
-										 1, 4, 4, 8, 4, 10};
-	
-	private JLabel yourLabel, bankLabel, yourTime;
+	private JPanel middlePanel = new JPanel();
+	private JLabel yourLabel, bankLabel, yourTime, roundLabel;
 	private JTextField typeWords = new JTextField();
 	private JTextArea bankWords = new JTextArea();
+	private WordGraph graph;
 	
 	private PrintStream output = null;
+	private String username;
 	private String givenWord = "";
+	private int round = 0;
 	
 	public GameBox(String username, PrintStream p)
 	{
-		String message = "";
 	    output = p;
-		
-		Scanner input = new Scanner(message);
-		int round = Integer.parseInt(input.next());
-		givenWord = input.next();
+	    this.username = username;
 		
 		setLayout(new BorderLayout());
 		
 		JPanel topPanel = new JPanel();
 		topPanel.add(new JLabel(new ImageIcon(".\\images\\main.jpg")));
+		topPanel.setBackground(Color.WHITE);
 		
-		JPanel middlePanel = new JPanel();
-		middlePanel.setLayout(new BorderLayout());
+		middlePanel.setLayout(new GridLayout(3, 1, 5, 5));
+		middlePanel.setBackground(Color.WHITE);
 		
-		JLabel roundLabel = new JLabel("Round " + round, SwingConstants.CENTER);
+		roundLabel = new JLabel("Round", SwingConstants.CENTER);
 		roundLabel.setFont(new Font("Arial", Font.PLAIN, 30));
 		middlePanel.add(roundLabel, BorderLayout.NORTH);
-		yourTime = new JLabel("Timer: 90");
+		yourTime = new JLabel("Timer: 30", SwingConstants.CENTER);
 		middlePanel.add(yourTime, BorderLayout.CENTER);
-		middlePanel.add(new WordGraph(givenWord), BorderLayout.SOUTH);
-		add(middlePanel, BorderLayout.CENTER);
 		
 		JPanel bottomPanel = new JPanel();
 		bottomPanel.setLayout(new GridLayout(2, 1, 5, 5));
@@ -60,48 +53,31 @@ public class GameBox extends JPanel implements KeyListener
 		actionPanel.add(bankLabel);
 		
 		bottomPanel.add(actionPanel);
+		bottomPanel.setBackground(Color.WHITE);
+		bottomPanel.setPreferredSize(new Dimension(600, 200));
+		bankWords.setEditable(false);
 		JScrollPane scroll = new JScrollPane(bankWords);
 		bottomPanel.add(scroll);
-		
+
+		add(topPanel, BorderLayout.NORTH);
+		add(middlePanel, BorderLayout.CENTER);
 		add(bottomPanel, BorderLayout.SOUTH);
-		input.close();
 	}
 	
-	private int getScore()
+	public void startGame(String message)
 	{
-		Scanner input = new Scanner(bankWords.getText());
-		input.useDelimiter("\n");
+		Scanner input = new Scanner(message);
 		
-		int total = 0;
-		while(input.hasNext())
-		{
-			String word = input.next();
-			if(isAnagram(word))
-				total += scoreWord(word);
-		}
+		givenWord = input.next();
+		graph = new WordGraph(givenWord);
+		graph.setPreferredSize(new Dimension(600, 100));
+
+		round = Integer.parseInt(input.next());
+		roundLabel.setText("Round " + round);
+		
+		middlePanel.add(graph, BorderLayout.SOUTH);
+		
 		input.close();
-		return total;
-	}
-	
-	private int scoreWord(String word)
-	{
-		int total = 0;
-		for(int i = 0; i < word.length(); i++)
-			total += LETTER_VALUES[word.charAt(i)];
-		return total;
-	}
-	
-	private boolean isAnagram(String word)
-	{
-		String tempWord = givenWord;
-		for(int i = 0; i < word.length(); i++)
-		{
-			int loc = tempWord.indexOf(word.charAt(i));
-			if(loc == -1)
-				return false;
-			tempWord = tempWord.substring(0, loc) + tempWord.substring(loc + 1);
-		}
-		return true;
 	}
 	
 	public void update(String time)
@@ -113,7 +89,22 @@ public class GameBox extends JPanel implements KeyListener
 	{
 		yourTime.setText("Timer: 0");
 		JOptionPane.showMessageDialog(null, "Time's Up!");
-		output.println("SCORE " + getScore());
+		output.println("SCORE " + convertBank());
+		middlePanel.removeAll();
+	}
+	
+	private String convertBank()
+	{
+		String bank = "";
+		Scanner input = new Scanner(bankWords.getText());
+		while(input.hasNext())
+			bank += (input.next() + " ");
+		input.close();
+		
+		if(bank.equals(""))
+			return "";
+		else
+			return bank.substring(0, bank.length() - 1);
 	}
 	
 	@SuppressWarnings("serial")
@@ -132,7 +123,7 @@ public class GameBox extends JPanel implements KeyListener
 			{
 				super.repaint();
 				for(int i = 0; i < word.length(); i++)	
-					g.drawImage(ImageIO.read(new File(".\\images\\letters\\" + word.charAt(i) + "_b.png")), 41 * i, 0, null);
+					g.drawImage(ImageIO.read(new File(".\\images\\letters\\" + word.charAt(i) + "_b.png")), (280 - 20 * word.length()) + (41 * i), 0, null);
 			}
 			catch (IOException e)
 			{
@@ -150,8 +141,11 @@ public class GameBox extends JPanel implements KeyListener
 	@Override
 	public void keyReleased(KeyEvent arg0) 
 	{
-		if(!typeWords.getText().equals(""))
+		if(arg0.getKeyCode() == KeyEvent.VK_ENTER && !typeWords.getText().equals(""))
+		{
 			bankWords.setText(bankWords.getText() + typeWords.getText() + "\n");
+			typeWords.setText("");
+		}
 	}
 
 	@Override

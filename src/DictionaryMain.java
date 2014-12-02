@@ -16,7 +16,7 @@ public class DictionaryMain
 		}
 	}
 	
-	private static final String DATABASE_NAME = "DICTIONARY";
+	private static final String DATABASE_NAME = "Scrabanagram";
 	private static ArrayList<AnagramWord> wordList = new ArrayList<AnagramWord>();
 	
 	public static void main(String args[]) throws FileNotFoundException

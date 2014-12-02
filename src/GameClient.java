@@ -1,14 +1,12 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Scanner;
+import java.net.*;
+import java.util.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class GameClient extends JFrame implements ActionListener
 {
@@ -16,7 +14,7 @@ public class GameClient extends JFrame implements ActionListener
 
 	private JPanel mainPanel = new JPanel();
 	private Timer timer;
-	private STATE currState = STATE.MAIN;
+	private STATE currState = STATE.INITIAL;
 	private JProgressBar progressBar = new JProgressBar();
 	private Animation motion;
 	private JButton gameStartButton, instructionsButton, userLoginButton, backButton;
@@ -25,7 +23,9 @@ public class GameClient extends JFrame implements ActionListener
 	private Label userLabel; 
 	private ChatBox chat = null;
 	private GameBox game = null;
-	private boolean hasStarted = false;
+	private String round, score, bank, scores[] = new String[3];
+	private static int timeLeft = 60;
+	private JButton backToMainButton = new JButton("Bank To Main");
 
 	private Socket clientSocket = null;
 	private ClientHandler client;
@@ -135,24 +135,107 @@ public class GameClient extends JFrame implements ActionListener
 
 	public void setupGamePanel()
 	{
-		chat = new ChatBox(username, null);
 		chat.setPreferredSize(new Dimension(200, 600));
 		chat.setBackground(Color.LIGHT_GRAY);
 		add(chat, BorderLayout.EAST);
-
-		game = new GameBox(username, null);
+		
 		game.setPreferredSize(new Dimension(600, 600));
-		add(chat, BorderLayout.CENTER);
+		add(game, BorderLayout.CENTER);
 	}
 	
-	public JPanel setupStatusPanel()
+	private JTable setDataSummary()
 	{
-		return null;
+		ArrayList<String> bankWords = new ArrayList<String>();
+		ArrayList<String> wordValue = new ArrayList<String>();
+		
+		Scanner input = new Scanner(bank);
+		while(input.hasNext())
+		{
+			bankWords.add(input.next());
+			wordValue.add(input.next());
+		}
+		input.close();
+		
+		String summary[][] = new String[bankWords.size() + 1][3];
+		summary[0][0] = "Word Used";
+		summary[0][1] = "Word Value";
+		summary[0][2] = "Special Notes";
+		String[] inputCol = {"Word Used", "Word Value", "Special Notes"};
+		
+		for(int i = 0; i < bankWords.size(); i++)
+		{
+			summary[i + 1][0] = bankWords.get(i);
+			summary[i + 1][1] = wordValue.get(i);
+		}
+		
+		JTable summaryTable = new JTable(summary, inputCol);
+
+		// Align the information so it is centralized.
+		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+		centerRenderer.setHorizontalAlignment(DefaultTableCellRenderer.CENTER);
+		summaryTable.getColumn("Word Used").setCellRenderer(centerRenderer);
+		summaryTable.getColumn("Word Value").setCellRenderer(centerRenderer);
+		summaryTable.getColumn("Special Notes").setCellRenderer(centerRenderer);
+		summaryTable.setBorder(BorderFactory.createEmptyBorder(5, 5, 24, 5));
+		
+		return summaryTable;
+	}	
+	
+	public void setupStatusPanel()
+	{
+		setLayout(new BorderLayout());
+
+		JLabel label = new JLabel("Round " + round + " Complete!", SwingConstants.CENTER);
+		label.setFont(new Font("Arial", Font.PLAIN, 30));
+		mainPanel.add(label, BorderLayout.NORTH);
+		
+		JPanel statusPanel = new JPanel();
+		statusPanel.setLayout(new GridLayout(1, 2));
+		JTable table = setDataSummary();
+		table.setBackground(Color.LIGHT_GRAY);
+		table.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+		statusPanel.add(table);
+		statusPanel.setBackground(Color.WHITE);
+
+		JLabel scoreLabel = new JLabel("<html><center>Round Score <br>" + score + "</center></html>", SwingConstants.CENTER);
+		scoreLabel.setFont(new Font("Arial", Font.PLAIN, 30));
+		statusPanel.add(scoreLabel);
+		
+		mainPanel.add(statusPanel, BorderLayout.CENTER);
 	}
 	
-	public JPanel setupFinalPanel()
+	public void setupFinalPanel()
 	{
-		return null;
+		setLayout(new BorderLayout());
+
+		JLabel label = new JLabel("Round 3 Complete!", SwingConstants.CENTER);
+		label.setFont(new Font("Arial", Font.PLAIN, 30));
+		mainPanel.add(label, BorderLayout.NORTH);
+		
+		JPanel statusPanel = new JPanel();
+		statusPanel.setLayout(new GridLayout(1, 2));
+		JTable table = setDataSummary();
+		table.setBackground(Color.LIGHT_GRAY);
+		table.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+		statusPanel.add(table);
+		statusPanel.setBackground(Color.WHITE);
+
+		JPanel finalScore = new JPanel();
+		finalScore.setLayout(new GridLayout(4, 1));
+		JLabel scoreLabel1 = new JLabel("Round Score 1: " + scores[0], SwingConstants.CENTER);
+		scoreLabel1.setFont(new Font("Arial", Font.PLAIN, 30));
+		JLabel scoreLabel2 = new JLabel("Round Score 2: " + scores[1], SwingConstants.CENTER);
+		scoreLabel2.setFont(new Font("Arial", Font.PLAIN, 30));
+		JLabel scoreLabel3 = new JLabel("Round Score 3: " + scores[2], SwingConstants.CENTER);
+		scoreLabel3.setFont(new Font("Arial", Font.PLAIN, 30));
+		finalScore.add(scoreLabel1);
+		finalScore.add(scoreLabel2);
+		finalScore.add(scoreLabel3);
+		backToMainButton.addActionListener(this);
+		finalScore.add(backToMainButton);
+		statusPanel.add(finalScore);
+		
+		mainPanel.add(statusPanel, BorderLayout.CENTER);
 	}
 	
 	public void actionPerformed(ActionEvent e)
@@ -175,6 +258,37 @@ public class GameClient extends JFrame implements ActionListener
 			setupMainScreen();
 			mainPanel.repaint();
 			mainPanel.revalidate();
+		}
+		else if(e.getSource() == timer && currState == STATE.GAME)
+		{
+			this.remove(chat);
+			this.remove(game);
+			mainPanel.removeAll();
+			timer.stop();
+			if(!round.equals("3"))
+				setupStatusPanel();
+			else
+				setupFinalPanel();
+			mainPanel.repaint();
+			mainPanel.revalidate();
+			if(round.equals("3"))
+				currState = STATE.FINAL;
+			else
+			{
+				timeLeft = 120;
+				timer.start();
+				currState = STATE.STATUS;
+			}
+		}
+		else if(e.getSource() == timer && currState == STATE.STATUS)
+		{
+			timeLeft--;
+			if(timeLeft == 0)
+			{
+				timer.stop();
+				currState = STATE.GAME;
+				client.output.println("CONTINUE");
+			}
 		}
 		else if(e.getSource() == instructionsButton)
 		{
@@ -212,15 +326,22 @@ public class GameClient extends JFrame implements ActionListener
 			Object options[] = {"1 Player", "2 Players", "3 Players"};
 			int choice = JOptionPane.showOptionDialog(null, "How many players do you want to play with?", "Question", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
 			
+			if(client == null)
+			{
+				client = new ClientHandler(clientSocket, username);
+				client.start();
+			}
+		
+			System.out.println("CHOICE: " + choice);
+			client.output.println("QUEUE " + (choice + 1));
+		}
+		else if(e.getSource() == backToMainButton)
+		{
 			mainPanel.removeAll();
-			setupGamePanel();
+			setupMainScreen();
 			mainPanel.repaint();
 			mainPanel.revalidate();
-
-			System.out.println("CHOICE: " + choice);
-			//output.println("QUEUE " + (choice + 1));
-
-			while(!hasStarted);
+			currState = STATE.MAIN;
 		}
 	}
 
@@ -235,17 +356,26 @@ public class GameClient extends JFrame implements ActionListener
 		{
 			client = s;
 			userName = name;
+			
+			try
+			{
+    			inputLine = new BufferedReader(new InputStreamReader(client.getInputStream()));
+	    		output = new PrintStream(client.getOutputStream());
+			}
+			catch (IOException e)
+			{
+				
+			}
 		}
 		
 		public void run()
 		{
 	    	try 
 	    	{
-    			inputLine = new BufferedReader(new InputStreamReader(client.getInputStream()));
-	    		output = new PrintStream(client.getOutputStream());
 	    		
 	    		while (true) 
 	    		{
+	    			System.out.println("WAITING.");
 	    			String line = inputLine.readLine();
 	    			System.out.println("Line: " + line);
 		    		Scanner inputStream = new Scanner(line);
@@ -255,12 +385,23 @@ public class GameClient extends JFrame implements ActionListener
 		    		{
 	    				String username = inputStream.next();
 	    				Color color = chat.convertColorString(inputStream.next());
-	    				String message = inputStream.next() + "\n";
+	    				String message = inputStream.nextLine() + "\n";
 	    				chat.setText(username, color, message);
 		    		}
 		    		else if(command.equals("START"))
 		    		{
-		    			hasStarted = true;
+		    			chat = new ChatBox(username, output);
+		    			game = new GameBox(username, output);
+						currState = STATE.GAME;
+
+		    			mainPanel.removeAll();
+		    			setupGamePanel();
+		    			mainPanel.repaint();
+		    			mainPanel.revalidate();
+		    		}
+		    		else if(command.equals("WORD"))
+		    		{
+		    			game.startGame(inputStream.nextLine());
 		    		}
 		    		else if(command.equals("UPDATE"))
 		    		{
@@ -269,6 +410,22 @@ public class GameClient extends JFrame implements ActionListener
 		    		else if(command.equals("DONE"))
 		    		{
 		    			game.complete();
+		    		}
+		    		else if(command.equals("SCORE"))
+		    		{
+		    			timer.start();
+		    			round = inputStream.next();
+		    			score = inputStream.next();
+		    			bank = inputStream.nextLine();
+		    		}
+		    		else if(command.equals("FINAL"))
+		    		{
+		    			timer.start();
+		    			round = inputStream.next();
+		    			scores[0] = inputStream.next();
+		    			scores[1] = inputStream.next();
+		    			scores[2] = inputStream.next();
+		    			bank = inputStream.nextLine();
 		    		}
 		    		inputStream.close();
 	    		}
