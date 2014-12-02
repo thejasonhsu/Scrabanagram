@@ -4,9 +4,9 @@
 Download all files.
 
 mySQL:
-  + Create database named 'dictionary'
+  + Create database named 'scrabanagram'
   + Create table named 'dictionary' under the db
-  + word VARCHAR(40), count INTEGER
+  + Create column 'word' type VARCHAR(40)
 
     + To use preset wordlist:
       + Replace username and password with your own in TransferMain.java:
@@ -23,7 +23,6 @@ mySQL:
       ```
       + Run DictionaryMain.java to fill db up with words and valid solutions.
     
-  + Create database named 'scrabanagram'
   + Replace username and password with your own in ServerInfo.java:
   ```bash
   public static final String USER = "username";
