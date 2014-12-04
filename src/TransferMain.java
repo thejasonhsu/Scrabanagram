@@ -33,7 +33,7 @@ public class TransferMain
 		try
 		{
 			Class.forName("com.mysql.jdbc.Driver");
-			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/" + DATABASE_NAME, "root", "Heaty6969");
+			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/" + DATABASE_NAME, "root", "Phil413!");
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate("DROP TABLE DICTIONARY;");
 			stmt.executeUpdate("CREATE TABLE DICTIONARY(word VARCHAR(40), PRIMARY KEY(word));");

@@ -40,6 +40,7 @@ public class GameServer
 		catch (SQLException s)
 		{
 			System.out.println("ERROR: SQL error 2.");
+			s.printStackTrace();
 		}
 	    
 	    try
@@ -178,11 +179,10 @@ public class GameServer
 		    		else if(command.equals("CONTINUE"))
 		    		{
 	    				output.println("START");
-	    				if(queryLock.tryLock())
-	    				{
+	    				if(runningGames.get(gameNumber).time <= 0)
 	    					runningGames.get(gameNumber).startGame();
-	    					queryLock.unlock();
-	    				}
+	    				else
+	    					this.output.println("WORD " + runningGames.get(gameNumber).givenWord + " " + runningGames.get(gameNumber).roundNum);
 		    		}
 		    		else if(command.equals("SCORE"))
 		    		{
@@ -200,6 +200,8 @@ public class GameServer
 	    				else
 	    				{
 	    					output.println("FINAL " + round + " " + score[0] + " " + score[1] + " " + score[2] + " " + goodBank);
+	    					runningGames.get(gameNumber).doneCount++;
+	    					while(runningGames.get(gameNumber).doneCount < runningGames.get(gameNumber).players.size()) ;
 	    					runningGames.get(gameNumber).end();
 	    					runningGames.set(gameNumber, null);
 	    				}
@@ -318,6 +320,8 @@ public class GameServer
 		private Timer timer;
 		private int time, roundNum;
 		private String givenWord, bonusWord;
+		public boolean isReady[];
+		private int doneCount = 0;
 		
 		public RunningGame(ServerHandler player1, ServerHandler player2, ServerHandler player3)
 		{
@@ -374,7 +378,9 @@ public class GameServer
 				for(int i = 0; i < players.size(); i++)
 				{
 					if(time <= 0)
+					{
 	    				players.get(i).output.println("DONE " + givenWord);
+					}
 					else
 						players.get(i).output.println("UPDATE " + time);
 				}

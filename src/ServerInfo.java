@@ -2,7 +2,7 @@ import java.sql.*;
 
 public class ServerInfo 
 {
-    public static int portNumber = 3333;
+    public static int portNumber = 2222;
     public static String host = "localhost";
 	public static Connection conn = null;
     
